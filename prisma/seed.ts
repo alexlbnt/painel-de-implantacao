@@ -102,8 +102,9 @@ async function main() {
       { nome: "Lívia Martins", cargo: "Atendente do Protocolo", dep: "Protocolo" },
       { nome: "Otávio Rezende", cargo: "Gestor do contrato", dep: null },
     ];
+    const idPessoa: Record<string, string> = {};
     for (const [i, p] of pessoas.entries()) {
-      await prisma.pessoaCliente.create({
+      const criada = await prisma.pessoaCliente.create({
         data: {
           projetoId: p1.id,
           nome: p.nome,
@@ -113,6 +114,191 @@ async function main() {
           telefone: `(00) 90000-00${String(i + 1).padStart(2, "0")}`,
           usuarioChave: p.chave ?? false,
           autonomiaConfirmadaEm: p.autonomia ?? null,
+        },
+      });
+      idPessoa[p.nome] = criada.id;
+    }
+
+    // ---------- Sprint 2: módulos e tarefas ----------
+    const membrosP1 = await prisma.membroProjeto.findMany({
+      where: { projetoId: p1.id },
+      select: { id: true, usuarioId: true },
+    });
+    const membroAna = membrosP1.find((m) => m.usuarioId === ana.id)!.id;
+    const membroBruno = membrosP1.find((m) => m.usuarioId === bruno.id)!.id;
+
+    const modulos = [
+      {
+        nome: "Folha de Pagamento",
+        percentual: 80,
+        peso: 3,
+        status: "EM_VALIDACAO",
+        aderencia: 90,
+      },
+      { nome: "Contabilidade", percentual: 60, peso: 3, status: "EM_IMPLANTACAO", aderencia: 85 },
+      { nome: "Compras", percentual: 40, peso: 2, status: "EM_IMPLANTACAO", aderencia: null },
+      { nome: "Patrimônio", percentual: 20, peso: 1, status: "EM_IMPLANTACAO", aderencia: null },
+      { nome: "Protocolo", percentual: 0, peso: 1, status: "NAO_INICIADO", aderencia: null },
+    ] as const;
+    const idModulo: Record<string, string> = {};
+    for (const m of modulos) {
+      const criado = await prisma.modulo.create({ data: { projetoId: p1.id, ...m } });
+      idModulo[m.nome] = criado.id;
+    }
+
+    type TarefaSeed = {
+      titulo: string;
+      modulo?: string;
+      dep?: string;
+      membro?: string;
+      pessoa?: string;
+      prazo?: number;
+      status?: "A_FAZER" | "EM_ANDAMENTO" | "BLOQUEADA" | "CONCLUIDA";
+      parte?: "CONTRATADA" | "CONTRATANTE";
+      prioridade?: "BAIXA" | "MEDIA" | "ALTA";
+      motivo?: string;
+    };
+    const tarefas: TarefaSeed[] = [
+      // 3 atrasadas da contratante
+      {
+        titulo: "Enviar planilha de rubricas da folha",
+        modulo: "Folha de Pagamento",
+        dep: "Recursos Humanos",
+        pessoa: "Marcos Vieira",
+        prazo: -8,
+        parte: "CONTRATANTE",
+        prioridade: "ALTA",
+      },
+      {
+        titulo: "Validar plano de contas importado",
+        modulo: "Contabilidade",
+        dep: "Contabilidade",
+        pessoa: "Patrícia Lima",
+        prazo: -4,
+        parte: "CONTRATANTE",
+        status: "EM_ANDAMENTO",
+      },
+      {
+        titulo: "Indicar responsável pelo cadastro de fornecedores",
+        modulo: "Compras",
+        dep: "Compras",
+        pessoa: "Juliana Prado",
+        prazo: -2,
+        parte: "CONTRATANTE",
+      },
+      // 1 atrasada da contratada
+      {
+        titulo: "Parametrizar tabela de incidências",
+        modulo: "Folha de Pagamento",
+        membro: "bruno",
+        prazo: -3,
+        status: "EM_ANDAMENTO",
+        prioridade: "ALTA",
+      },
+      // 1 bloqueada com motivo
+      {
+        titulo: "Importar saldos do patrimônio",
+        modulo: "Patrimônio",
+        dep: "Patrimônio",
+        membro: "bruno",
+        prazo: 6,
+        status: "BLOQUEADA",
+        motivo: "Aguardando o cliente liberar o acesso à base do sistema anterior.",
+      },
+      // demais
+      {
+        titulo: "Conferir cálculo da folha paralela",
+        modulo: "Folha de Pagamento",
+        membro: "bruno",
+        prazo: 4,
+        status: "EM_ANDAMENTO",
+      },
+      {
+        titulo: "Treinar equipe de RH em lançamentos mensais",
+        modulo: "Folha de Pagamento",
+        dep: "Recursos Humanos",
+        membro: "ana",
+        prazo: 9,
+      },
+      {
+        titulo: "Configurar integração bancária da contabilidade",
+        modulo: "Contabilidade",
+        membro: "ana",
+        prazo: 12,
+        prioridade: "ALTA",
+      },
+      {
+        titulo: "Revisar fluxo de aprovação de compras",
+        modulo: "Compras",
+        dep: "Compras",
+        membro: "bruno",
+        prazo: 15,
+      },
+      {
+        titulo: "Levantar inventário inicial de bens",
+        modulo: "Patrimônio",
+        dep: "Patrimônio",
+        pessoa: "Sérgio Nunes",
+        prazo: 18,
+        parte: "CONTRATANTE",
+      },
+      {
+        titulo: "Definir tipos de documento do protocolo",
+        modulo: "Protocolo",
+        dep: "Protocolo",
+        pessoa: "Lívia Martins",
+        prazo: 21,
+        parte: "CONTRATANTE",
+        prioridade: "BAIXA",
+      },
+      {
+        titulo: "Cadastrar usuários e perfis de acesso",
+        membro: "ana",
+        prazo: -20,
+        status: "CONCLUIDA",
+      },
+      {
+        titulo: "Instalar ambiente de homologação",
+        membro: "bruno",
+        prazo: -30,
+        status: "CONCLUIDA",
+      },
+      {
+        titulo: "Migrar cadastro de servidores",
+        modulo: "Folha de Pagamento",
+        dep: "Recursos Humanos",
+        membro: "bruno",
+        prazo: -12,
+        status: "CONCLUIDA",
+      },
+      {
+        titulo: "Agendar visita técnica ao almoxarifado",
+        dep: "Compras",
+        membro: "ana",
+        status: "A_FAZER",
+        prioridade: "BAIXA",
+      },
+    ];
+    const ordemPorStatus: Record<string, number> = {};
+    for (const t of tarefas) {
+      const status = t.status ?? "A_FAZER";
+      ordemPorStatus[status] = (ordemPorStatus[status] ?? -1) + 1;
+      await prisma.tarefa.create({
+        data: {
+          projetoId: p1.id,
+          titulo: t.titulo,
+          moduloId: t.modulo ? idModulo[t.modulo] : null,
+          departamentoId: t.dep ? deps[t.dep] : null,
+          responsavelMembroId:
+            t.membro === "ana" ? membroAna : t.membro === "bruno" ? membroBruno : null,
+          responsavelPessoaId: t.pessoa ? idPessoa[t.pessoa] : null,
+          prazo: t.prazo !== undefined ? dia(t.prazo) : null,
+          status,
+          parteResponsavel: t.parte ?? "CONTRATADA",
+          prioridade: t.prioridade ?? "MEDIA",
+          motivoBloqueio: t.motivo ?? null,
+          concluidaEm: status === "CONCLUIDA" ? dia((t.prazo ?? 0) - 1) : null,
+          ordem: ordemPorStatus[status],
         },
       });
     }

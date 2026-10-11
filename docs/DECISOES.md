@@ -117,3 +117,31 @@ A checagem real é na action.
 O formulário valida e transforma no cliente (ex.: `""` → `null`), e a action valida de novo com o mesmo
 schema. Por isso as transformações aceitam a própria saída (`null`), o que mantém um único schema por
 formulário (seção 8).
+
+### Sprint 2
+
+**D20 — Motivo do bloqueio com no mínimo 10 caracteres.**
+A RN11 diz só "tarefa bloqueada exige motivo". Para não aceitar motivos vazios de sentido ("x"),
+usamos o mesmo mínimo dos outros motivos do sistema (10 caracteres, `MOTIVO_MIN_CARACTERES`). Ao sair de
+BLOQUEADA, o motivo é limpo; ao concluir, `concluidaEm` é gravado e, ao reabrir, limpo.
+
+**D21 — Responsável da tarefa: equipe ou cliente.**
+O schema tem `responsavelMembroId` e `responsavelPessoaId`. A tela usa um único campo "Responsável",
+com dois grupos (equipe da contratada e pessoas do cliente). Só um dos dois é gravado. A "parte
+responsável" continua sendo um campo separado (A8), escolhido pelo usuário.
+
+**D22 — Quadro: arrastar, teclado e menu "Mover para".**
+O quadro usa @dnd-kit com sensor de teclado (espaço/Enter pega, setas movem, espaço/Enter solta, Esc
+cancela) e anúncios em português para leitores de tela. Cada cartão também tem o menu "Mover para",
+um caminho alternativo que não depende de arrastar. Soltar em "Bloqueada" abre o diálogo de motivo
+antes de gravar; cancelar devolve a tarefa à posição original.
+
+**D23 — Nome de módulo único sem diferenciar maiúsculas.**
+O `@@unique([projetoId, nome])` do banco diferencia maiúsculas. A action recusa "folha de pagamento"
+quando já existe "Folha de Pagamento".
+
+**D24 — Gráfico de módulos acessível.**
+A brand-500 tem contraste 2,1:1 com o branco (validado com o script de paleta). Por isso as barras levam
+contorno brand-700, rótulo de valor e uma tabela equivalente para leitores de tela. A linha de
+referência (brand-800, tracejada) é o percentual do projeto. O card "Progresso por módulo" já entra no
+painel nesta sprint, junto com os de progresso, fase e tarefas atrasadas.
