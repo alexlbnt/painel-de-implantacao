@@ -1,0 +1,502 @@
+// Schema do Marco — contrato da seção 10 da especificação.
+// Prisma 7: a URL de conexão fica em prisma.config.ts e o client usa o adapter da Neon.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Enums ----------
+enum PapelProjeto {
+  LIDER
+  ANALISTA
+}
+enum FaseProjeto {
+  PLANEJAMENTO
+  EXECUCAO
+  CHECKOUT
+  HANDOVER
+  TRANSICAO
+  ENCERRADO
+}
+enum StatusProjeto {
+  ATIVO
+  AGUARDANDO_PRONTIDAO
+  PAUSADO
+  CANCELADO
+}
+enum Parte {
+  CONTRATADA
+  CONTRATANTE
+}
+enum StatusModulo {
+  NAO_INICIADO
+  EM_IMPLANTACAO
+  EM_VALIDACAO
+  IMPLANTADO
+}
+enum StatusTarefa {
+  A_FAZER
+  EM_ANDAMENTO
+  BLOQUEADA
+  CONCLUIDA
+}
+enum Prioridade {
+  BAIXA
+  MEDIA
+  ALTA
+}
+enum TipoReuniao {
+  KICKOFF
+  SEMANAL
+  PRONTIDAO
+}
+enum StatusReuniao {
+  RASCUNHO
+  FINALIZADA
+}
+enum CategoriaImpedimento {
+  INFRAESTRUTURA_CLIENTE
+  PESSOAL_CHAVE
+  DADOS_LEGADOS
+  OUTRO
+}
+enum StatusImpedimento {
+  ABERTO
+  RESOLVIDO
+}
+enum TipoEvidencia {
+  ATA_ABERTURA
+  TERMO_DADOS_LEGADOS
+  ATA_SEMANAL
+  TERMO_ACEITE_MIGRACAO
+  CHECKLIST
+  ATA_PRONTIDAO
+  OUTRO
+}
+enum StatusAssinatura {
+  RASCUNHO
+  ENVIADO
+  ASSINADO
+  RECUSADO
+  ACEITE_TACITO
+}
+enum Canal {
+  EMAIL
+  MENSAGEM
+  PRESENCIAL
+  OUTRO
+}
+enum TipoCriterio {
+  SALDOS_INICIAIS_ACEITOS
+  AUTONOMIA_USUARIOS_CHAVE
+  INTEGRACOES_OBRIGATORIAS_ATIVAS
+  WIKI_CONSOLIDADA
+}
+enum CategoriaNota {
+  PARTICULARIDADE
+  REGRA_LOCAL
+  PERFIL
+  CONTATO
+}
+enum StatusMigracao {
+  PENDENTE
+  EXTRAIDO
+  IMPORTADO
+  VALIDADO
+  DIVERGENTE
+}
+enum AcaoHistorico {
+  CRIAR
+  ATUALIZAR
+  EXCLUIR
+}
+enum EstrategiaRisco { // Should
+  EVITAR
+  MITIGAR
+  TRANSFERIR
+  ACEITAR
+}
+enum StatusRisco { // Should
+  ABERTO
+  MONITORANDO
+  OCORREU
+  ENCERRADO
+}
+
+// ---------- Equipe ----------
+model Usuario {
+  id           String   @id @default(cuid())
+  nome         String
+  email        String   @unique
+  senhaHash    String
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  membros      MembroProjeto[]
+  historicos   HistoricoAlteracao[]
+  notasWiki    NotaWiki[]
+  versoesEnviadas      EvidenciaVersao[]
+  tentativasRegistradas TentativaFormalizacao[]
+}
+
+model MembroProjeto {
+  id        String       @id @default(cuid())
+  projetoId String
+  usuarioId String
+  papel     PapelProjeto
+  criadoEm  DateTime     @default(now())
+  projeto   Projeto      @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  usuario   Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tarefas       Tarefa[]
+  treinamentos  Treinamento[]
+  participacoes ParticipanteReuniao[]
+  riscos        Risco[]
+  @@unique([projetoId, usuarioId])
+}
+
+// ---------- Projeto ----------
+model Projeto {
+  id             String        @id @default(cuid())
+  nome           String
+  cliente        String
+  municipio      String
+  uf             String        @db.Char(2)
+  handoffEm      DateTime      @db.Date
+  abertoEm       DateTime      @default(now())
+  inicioPrevisto DateTime?     @db.Date
+  fimPrevisto    DateTime?     @db.Date
+  fase           FaseProjeto   @default(PLANEJAMENTO)
+  status         StatusProjeto @default(ATIVO)
+  diaReuniao     Int           @default(4) // 1 = segunda ... 5 = sexta; padrão quinta
+  dataProntidao  DateTime?     @db.Date    // D+0
+  criadoEm       DateTime      @default(now())
+  atualizadoEm   DateTime      @updatedAt
+
+  membros       MembroProjeto[]
+  pessoas       PessoaCliente[]
+  departamentos Departamento[]
+  modulos       Modulo[]
+  tarefas       Tarefa[]
+  treinamentos  Treinamento[]
+  reunioes      Reuniao[]
+  impedimentos  Impedimento[]
+  riscos        Risco[]
+  evidencias    Evidencia[]
+  criterios     CriterioCheckout[]
+  notas         NotaWiki[]
+  itensMigracao ItemMigracao[]
+  feriados      Feriado[]
+  historicos    HistoricoAlteracao[]
+}
+
+// ---------- Cliente ----------
+model PessoaCliente {
+  id                   String    @id @default(cuid())
+  projetoId            String
+  departamentoId       String?
+  nome                 String
+  cargo                String?
+  email                String?
+  telefone             String?
+  usuarioChave         Boolean   @default(false)
+  autonomiaConfirmadaEm DateTime? @db.Date
+  criadoEm             DateTime  @default(now())
+  atualizadoEm         DateTime  @updatedAt
+  projeto              Projeto       @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  departamento         Departamento? @relation(fields: [departamentoId], references: [id], onDelete: SetNull)
+  presencas            Presenca[]
+  participacoes        ParticipanteReuniao[]
+  tarefas              Tarefa[]
+  tentativas           TentativaFormalizacao[]
+}
+
+model NotaWiki {
+  id           String        @id @default(cuid())
+  projetoId    String
+  categoria    CategoriaNota
+  titulo       String
+  texto        String
+  autorId      String
+  criadoEm     DateTime      @default(now())
+  atualizadoEm DateTime      @updatedAt
+  projeto      Projeto       @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  autor        Usuario       @relation(fields: [autorId], references: [id])
+}
+
+// ---------- Execução ----------
+model Departamento {
+  id        String  @id @default(cuid())
+  projetoId String
+  nome      String
+  projeto   Projeto @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  pessoas   PessoaCliente[]
+  tarefas   Tarefa[]
+  itensMigracao ItemMigracao[]
+  @@unique([projetoId, nome])
+}
+
+model Modulo {
+  id           String       @id @default(cuid())
+  projetoId    String
+  nome         String
+  status       StatusModulo @default(NAO_INICIADO)
+  percentual   Int          @default(0)  // 0 a 100
+  aderencia    Int?                      // 0 a 100
+  peso         Int          @default(1)  // 1 a 10
+  observacao   String?
+  criadoEm     DateTime     @default(now())
+  atualizadoEm DateTime     @updatedAt
+  projeto      Projeto      @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  tarefas      Tarefa[]
+  treinamentos Treinamento[]
+  @@unique([projetoId, nome])
+}
+
+model Tarefa {
+  id                  String       @id @default(cuid())
+  projetoId           String
+  moduloId            String?
+  departamentoId      String?
+  responsavelMembroId String?
+  responsavelPessoaId String?
+  reuniaoOrigemId     String?
+  titulo              String
+  descricao           String?
+  prazo               DateTime?    @db.Date
+  prioridade          Prioridade   @default(MEDIA)
+  status              StatusTarefa @default(A_FAZER)
+  parteResponsavel    Parte        @default(CONTRATADA)
+  motivoBloqueio      String?
+  ordem               Int          @default(0)
+  concluidaEm         DateTime?
+  criadoEm            DateTime     @default(now())
+  atualizadoEm        DateTime     @updatedAt
+  projeto           Projeto        @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  modulo            Modulo?        @relation(fields: [moduloId], references: [id], onDelete: SetNull)
+  departamento      Departamento?  @relation(fields: [departamentoId], references: [id], onDelete: SetNull)
+  responsavelMembro MembroProjeto? @relation(fields: [responsavelMembroId], references: [id], onDelete: SetNull)
+  responsavelPessoa PessoaCliente? @relation(fields: [responsavelPessoaId], references: [id], onDelete: SetNull)
+  reuniaoOrigem     Reuniao?       @relation(fields: [reuniaoOrigemId], references: [id], onDelete: SetNull)
+  @@index([projetoId, status])
+}
+
+// ---------- Capacitação ----------
+model Treinamento {
+  id                String    @id @default(cuid())
+  projetoId         String
+  moduloId          String?
+  instrutorMembroId String?
+  titulo            String
+  data              DateTime  @db.Date
+  horaInicio        String?   // "HH:mm"
+  duracaoMin        Int?
+  local             String?
+  observacao        String?
+  criadoEm          DateTime  @default(now())
+  atualizadoEm      DateTime  @updatedAt
+  projeto   Projeto        @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  modulo    Modulo?        @relation(fields: [moduloId], references: [id], onDelete: SetNull)
+  instrutor MembroProjeto? @relation(fields: [instrutorMembroId], references: [id], onDelete: SetNull)
+  presencas Presenca[]
+}
+
+model Presenca {
+  id              String        @id @default(cuid())
+  treinamentoId   String
+  pessoaClienteId String
+  presente        Boolean       @default(false)
+  treinamento     Treinamento   @relation(fields: [treinamentoId], references: [id], onDelete: Cascade)
+  pessoa          PessoaCliente @relation(fields: [pessoaClienteId], references: [id], onDelete: Cascade)
+  @@unique([treinamentoId, pessoaClienteId])
+}
+
+// ---------- Governança ----------
+model Reuniao {
+  id             String        @id @default(cuid())
+  projetoId      String
+  tipo           TipoReuniao
+  numero         Int           // sequencial por projeto, todos os tipos
+  data           DateTime      @db.Date
+  horaInicio     String?
+  horaFim        String?
+  local          String?
+  resumoStatus   String?
+  salvaguardas   String?
+  status         StatusReuniao @default(RASCUNHO)
+  percentualNoDia Int?         // gravado ao finalizar
+  snapshot       Json?         // conteúdo congelado da ata ao finalizar
+  finalizadaEm   DateTime?
+  criadoEm       DateTime      @default(now())
+  atualizadoEm   DateTime      @updatedAt
+  projeto       Projeto     @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  participantes ParticipanteReuniao[]
+  decisoes      Decisao[]
+  acoes         Tarefa[]
+  impedimentos  Impedimento[]
+  evidencias    Evidencia[]
+  @@unique([projetoId, numero])
+}
+
+model ParticipanteReuniao {
+  id              String  @id @default(cuid())
+  reuniaoId       String
+  parte           Parte
+  membroId        String?
+  pessoaClienteId String?
+  nomeAvulso      String? // participante sem cadastro
+  reuniao Reuniao        @relation(fields: [reuniaoId], references: [id], onDelete: Cascade)
+  membro  MembroProjeto? @relation(fields: [membroId], references: [id], onDelete: SetNull)
+  pessoa  PessoaCliente? @relation(fields: [pessoaClienteId], references: [id], onDelete: SetNull)
+}
+
+model Decisao {
+  id        String  @id @default(cuid())
+  reuniaoId String
+  numero    Int
+  texto     String
+  reuniao   Reuniao @relation(fields: [reuniaoId], references: [id], onDelete: Cascade)
+  @@unique([reuniaoId, numero])
+}
+
+model Impedimento {
+  id               String               @id @default(cuid())
+  projetoId        String
+  reuniaoId        String?
+  categoria        CategoriaImpedimento
+  descricao        String
+  parteResponsavel Parte
+  status           StatusImpedimento    @default(ABERTO)
+  abertoEm         DateTime             @default(now()) @db.Date
+  resolvidoEm      DateTime?            @db.Date
+  resolucao        String?
+  projeto Projeto  @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  reuniao Reuniao? @relation(fields: [reuniaoId], references: [id], onDelete: SetNull)
+}
+
+model Risco { // Should — Sprint 8
+  id                  String          @id @default(cuid())
+  projetoId           String
+  descricao           String
+  probabilidade       Int             // 1 a 5
+  impacto             Int             // 1 a 5
+  estrategia          EstrategiaRisco
+  planoResposta       String?
+  responsavelMembroId String?
+  status              StatusRisco     @default(ABERTO)
+  criadoEm            DateTime        @default(now())
+  atualizadoEm        DateTime        @updatedAt
+  projeto     Projeto        @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  responsavel MembroProjeto? @relation(fields: [responsavelMembroId], references: [id], onDelete: SetNull)
+}
+
+// ---------- Formalização ----------
+model Evidencia {
+  id               String           @id @default(cuid())
+  projetoId        String
+  reuniaoId        String?
+  tipo             TipoEvidencia
+  titulo           String
+  statusAssinatura StatusAssinatura @default(RASCUNHO)
+  criadoEm         DateTime         @default(now())
+  atualizadoEm     DateTime         @updatedAt
+  projeto    Projeto  @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  reuniao    Reuniao? @relation(fields: [reuniaoId], references: [id], onDelete: SetNull)
+  versoes    EvidenciaVersao[]
+  tentativas TentativaFormalizacao[]
+  criterios  CriterioCheckout[]
+  itensMigracao ItemMigracao[]
+}
+
+model EvidenciaVersao { // somente insert (RN09)
+  id           String   @id @default(cuid())
+  evidenciaId  String
+  numero       Int
+  arquivoUrl   String
+  nomeArquivo  String
+  mimeType     String
+  tamanhoBytes Int
+  assinada     Boolean  @default(false)
+  enviadoPorId String
+  criadoEm     DateTime @default(now())
+  evidencia  Evidencia @relation(fields: [evidenciaId], references: [id], onDelete: Cascade)
+  enviadoPor Usuario   @relation(fields: [enviadoPorId], references: [id])
+  @@unique([evidenciaId, numero])
+}
+
+model TentativaFormalizacao {
+  id                  String   @id @default(cuid())
+  evidenciaId         String
+  destinatarioId      String
+  registradoPorId     String
+  enviadoEm           DateTime @db.Date
+  canal               Canal
+  motivoNaoAssinatura String?
+  criadoEm            DateTime @default(now())
+  evidencia     Evidencia     @relation(fields: [evidenciaId], references: [id], onDelete: Cascade)
+  destinatario  PessoaCliente @relation(fields: [destinatarioId], references: [id])
+  registradoPor Usuario       @relation(fields: [registradoPorId], references: [id])
+}
+
+model CriterioCheckout {
+  id            String       @id @default(cuid())
+  projetoId     String
+  tipo          TipoCriterio
+  atendido      Boolean      @default(false)
+  evidenciaId   String?
+  observacao    String?
+  atendidoEm    DateTime?
+  atendidoPorId String?
+  projeto   Projeto    @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  evidencia Evidencia? @relation(fields: [evidenciaId], references: [id], onDelete: SetNull)
+  @@unique([projetoId, tipo])
+}
+
+// ---------- Migração ----------
+model ItemMigracao {
+  id                  String         @id @default(cuid())
+  projetoId           String
+  departamentoId      String?
+  evidenciaAceiteId   String?
+  entidade            String         // ex.: "Cadastro de servidores", "Saldos contábeis"
+  registrosOrigem     Int?
+  registrosImportados Int?
+  status              StatusMigracao @default(PENDENTE)
+  justificativa       String?
+  criadoEm            DateTime       @default(now())
+  atualizadoEm        DateTime       @updatedAt
+  projeto         Projeto       @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  departamento    Departamento? @relation(fields: [departamentoId], references: [id], onDelete: SetNull)
+  evidenciaAceite Evidencia?    @relation(fields: [evidenciaAceiteId], references: [id], onDelete: SetNull)
+}
+
+// ---------- Apoio ----------
+model Feriado {
+  id        String   @id @default(cuid())
+  projetoId String?  // null = vale para todos os projetos
+  data      DateTime @db.Date
+  nome      String
+  projeto   Projeto? @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  @@index([projetoId, data])
+}
+
+model HistoricoAlteracao {
+  id            String        @id @default(cuid())
+  projetoId     String
+  autorId       String
+  entidade      String        // "Projeto", "Evidencia", "NotaWiki"...
+  registroId    String
+  acao          AcaoHistorico
+  campo         String?
+  valorAnterior Json?
+  valorNovo     Json?
+  motivo        String?
+  criadoEm      DateTime      @default(now())
+  projeto Projeto @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  autor   Usuario @relation(fields: [autorId], references: [id])
+  @@index([projetoId, criadoEm])
+  @@index([entidade, registroId])
+}
