@@ -6,6 +6,7 @@ const ABAS: { aba: string; rotulo: string; icone: IconeNavegacao }[] = [
   { aba: "fases", rotulo: "Ciclo de vida", icone: "fases" },
   { aba: "modulos", rotulo: "Módulos", icone: "modulos" },
   { aba: "tarefas", rotulo: "Tarefas", icone: "tarefas" },
+  { aba: "reunioes", rotulo: "Reuniões", icone: "reunioes" },
   { aba: "pessoas", rotulo: "Pessoas do cliente", icone: "pessoas" },
   { aba: "equipe", rotulo: "Equipe", icone: "equipe" },
   { aba: "historico", rotulo: "Histórico", icone: "historico" },

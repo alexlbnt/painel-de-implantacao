@@ -5,7 +5,8 @@ import { camposDoStatus, decodificarResponsavel, reposicionar } from "@/lib/regr
 import { acaoDoProjeto, ErroNegocio } from "@/server/acao";
 import type { Tx } from "@/server/db";
 import { registrarAlteracoes, registrarHistorico } from "@/server/historico";
-import { excluirTarefaSchema, moverTarefaSchema, tarefaSchema } from "./schemas";
+import { reuniaoEditavel } from "../reunioes/servidor";
+import { acaoReuniaoSchema, excluirTarefaSchema, moverTarefaSchema, tarefaSchema } from "./schemas";
 
 /** Confere que módulo, departamento e responsável pertencem ao projeto e devolve os nomes. */
 async function resolverReferencias(
@@ -226,6 +227,54 @@ export const excluirTarefa = acaoDoProjeto({
       valorAnterior: tarefa.titulo,
       autorId: usuario.id,
     });
+  },
+  revalidar: (d) => `/projetos/${d.projetoId}`,
+});
+
+/** Plano de ação da ata: cria tarefa com reuniaoOrigemId (RN07 validada no schema; RN08 na reunião). */
+export const criarAcaoReuniao = acaoDoProjeto({
+  schema: acaoReuniaoSchema,
+  permissao: "membro",
+  async executar({ tx, dados, usuario }) {
+    const reuniao = await reuniaoEditavel(tx, dados.projetoId, dados.reuniaoId);
+    const resp = decodificarResponsavel(dados.responsavel);
+    if (!resp.membroId && !resp.pessoaId)
+      throw new ErroNegocio("Toda ação de ata precisa de responsável.");
+    await resolverReferencias(tx, dados.projetoId, {
+      moduloId: dados.moduloId,
+      departamentoId: dados.departamentoId,
+      membroId: resp.membroId,
+      pessoaId: resp.pessoaId,
+    });
+    const ultima = await tx.tarefa.findFirst({
+      where: { projetoId: dados.projetoId, status: "A_FAZER" },
+      orderBy: { ordem: "desc" },
+      select: { ordem: true },
+    });
+    const tarefa = await tx.tarefa.create({
+      data: {
+        projetoId: dados.projetoId,
+        reuniaoOrigemId: reuniao.id,
+        titulo: dados.titulo,
+        moduloId: dados.moduloId,
+        departamentoId: dados.departamentoId,
+        responsavelMembroId: resp.membroId,
+        responsavelPessoaId: resp.pessoaId,
+        prazo: isoParaDataOuNulo(dados.prazo),
+        prioridade: dados.prioridade,
+        parteResponsavel: dados.parteResponsavel,
+        ordem: (ultima?.ordem ?? -1) + 1,
+      },
+    });
+    await registrarHistorico(tx, {
+      projetoId: dados.projetoId,
+      entidade: "Tarefa",
+      registroId: tarefa.id,
+      acao: "CRIAR",
+      valorNovo: `${tarefa.titulo} (ação da reunião nº ${reuniao.numero})`,
+      autorId: usuario.id,
+    });
+    return { id: tarefa.id };
   },
   revalidar: (d) => `/projetos/${d.projetoId}`,
 });

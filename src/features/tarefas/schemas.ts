@@ -43,3 +43,37 @@ export const moverTarefaSchema = z
 export type MoverTarefaInput = z.input<typeof moverTarefaSchema>;
 
 export const excluirTarefaSchema = z.object({ projetoId: id, tarefaId: id });
+
+/** Ação criada no plano de ação da ata: RN07 — responsável e prazo obrigatórios. */
+export const acaoReuniaoSchema = z
+  .object({
+    projetoId: id,
+    reuniaoId: id,
+    titulo: texto("o título", { min: 3, max: 200 }),
+    moduloId: idOpcional,
+    departamentoId: idOpcional,
+    responsavel: z
+      .string()
+      .nullable()
+      .transform((v) => v ?? ""),
+    prazo: dataOpcional(),
+    prioridade: z.enum(Prioridade, { error: "Escolha a prioridade" }),
+    parteResponsavel: z.enum(Parte, { error: "Escolha a parte responsável" }),
+  })
+  .superRefine((d, ctx) => {
+    if (!d.responsavel) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Toda ação de ata precisa de responsável",
+        path: ["responsavel"],
+      });
+    }
+    if (!d.prazo) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Toda ação de ata precisa de prazo",
+        path: ["prazo"],
+      });
+    }
+  });
+export type AcaoReuniaoInput = z.input<typeof acaoReuniaoSchema>;
