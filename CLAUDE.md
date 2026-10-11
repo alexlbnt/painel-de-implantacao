@@ -103,9 +103,14 @@ escondidos na UI, mas a checagem real é sempre a da action.
 
 ## Formulários
 
-- Schema Zod em `features/<modulo>/schemas.ts`, usado no cliente (`zodResolver`) e na action.
-- `CampoTexto` (`src/components/campo-formulario.tsx`) garante `<label>`, `aria-invalid` e erro.
-- Resultado da action: `toast.success/erro` (sonner) e `aplicarErrosDoServidor(form.setError, r.campos)`.
+- Schema Zod em `features/<modulo>/schemas.ts`, usado no cliente (`zodResolver`) e na action. Peças
+  comuns em `src/lib/validacao.ts` (`texto`, `textoOpcional`, `data`, `dataOpcional`, `motivo`, `inteiro`).
+  Transformações precisam ser idempotentes (aceitar a própria saída), pois o servidor revalida.
+- `useForm<z.input<S>, unknown, z.output<S>>` quando o schema transforma valores.
+- Campos: `CampoTexto`, `CampoTextoLongo`, `CampoSelecao` + `opcoesDe(LABEL_X)` (`src/components/campo-formulario.tsx`).
+- Resultado da action no cliente: `tratarResultado(r, { sucesso, setError })` (`src/lib/acao-cliente.ts`) — toast + erros por campo.
+- Diálogos prontos: `DialogoMotivo` (motivo obrigatório → histórico) e `ConfirmarAcao` (AlertDialog para excluir).
+- Badges: `src/components/badge-status.tsx` (tons da seção 12). Cards: `Cartao` e `CartaoIndicador`.
 
 ## Datas
 
@@ -117,6 +122,7 @@ escondidos na UI, mas a checagem real é sempre a da action.
 
 - Todo `page.tsx` tem `loading.tsx` (skeleton) e `error.tsx` (mensagem em português) no segmento.
 - Toda lista tem estado vazio com frase útil e ação (`EstadoVazio`).
+- Abas do projeto: `src/features/projetos/navegacao.ts` (adicionar a aba quando a tela ficar pronta).
 - Títulos de página com `CabecalhoPagina` (24px semibold). Cards: `bg-card border rounded-[var(--radius-card)]`,
   no máximo `shadow-sm`.
 - Badges sempre com texto (labels em `lib/formatos.ts`), cores da tabela da seção 12.

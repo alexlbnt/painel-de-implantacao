@@ -74,3 +74,46 @@ Mínimo de 8 caracteres e máximo de 72 (limite do bcrypt). A especificação n�
 **D10 — Primeira migração gerada offline.**
 Sem credenciais da Neon na Sprint 0, a migração `20261011000000_inicial` foi gerada com
 `prisma migrate diff --from-empty`. Para aplicar: `npm run db:deploy` (ou `npm run db:migrate`).
+
+**D11 — Projeto de referência só como inspiração.**
+O repositório interno usado como referência tem dados reais (empresa, município, códigos, pessoas).
+Por decisão do usuário em 11/10/2026, ele serve só de inspiração de UI/UX e de soluções técnicas para o
+que já está na especificação. Nada dele é copiado. Desde então, as sprints 1 a 8 rodam em sequência.
+
+### Sprint 1
+
+**D12 — "Próximo marco" no card do projeto.**
+A seção 11 cita "próximo marco" sem defini-lo. Usamos a próxima fase do ciclo de vida e quantos itens
+do portão ainda faltam ("Check-out · 1 pendência"). Em ENCERRADO: "Projeto encerrado".
+
+**D13 — Departamentos dentro de Pessoas do cliente.**
+A seção 11 não tem rota própria para departamentos. Eles são geridos numa aba da tela
+`/projetos/[id]/pessoas` (Pessoas | Departamentos). Nomes repetidos, sem diferenciar maiúsculas, são
+recusados; na criação do projeto, linhas vazias e repetidas são descartadas.
+
+**D14 — Exclusão de projeto apaga o histórico.**
+`HistoricoAlteracao` tem `onDelete: Cascade` no schema. Por isso, excluir o projeto (só em
+PLANEJAMENTO, digitando o nome) apaga também o histórico dele. O diálogo avisa isso.
+
+**D15 — Navegação só com abas prontas.**
+A barra lateral do projeto mostra só as abas já implementadas, e os links "Resolver" do portão só
+aparecem quando a aba de destino existe. Assim nenhum link leva a um 404.
+
+**D16 — Histórico além do mínimo da RNF01.**
+Além das entidades da RNF01, equipe, pessoas do cliente, departamentos e feriados também gravam
+histórico (pelo padrão de Server Action). Valores aparecem legíveis (enums traduzidos, datas dd/MM/yyyy,
+departamento pelo nome, não pelo id).
+
+**D17 — Pessoa com tentativa de formalização não pode ser excluída.**
+`TentativaFormalizacao.destinatario` não tem `onDelete` no schema (Restrict). A action recusa a
+exclusão com uma mensagem clara, em vez de deixar o erro do banco aparecer.
+
+**D18 — Analista vê Configurações só para leitura.**
+A tabela da seção 3 libera para o Analista "ver o projeto e todas as abas", mas só o Líder edita dados,
+dia da reunião, status e feriados. A tela abre para todos, com os campos desabilitados para o Analista.
+A checagem real é na action.
+
+**D19 — Schemas idempotentes.**
+O formulário valida e transforma no cliente (ex.: `""` → `null`), e a action valida de novo com o mesmo
+schema. Por isso as transformações aceitam a própria saída (`null`), o que mantém um único schema por
+formulário (seção 8).
