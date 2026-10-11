@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* ---------------------------------------------------------------
+   Paleta (ESPECIFICACAO.md, seção 12)
+   Regra de contraste: NUNCA texto branco sobre brand-500/600.
+   Texto sobre o verde = brand-950. Links/destaques = brand-800.
+   --------------------------------------------------------------- */
+@theme {
+  --color-brand-50: #f8fbef;
+  --color-brand-100: #f0f6da;
+  --color-brand-200: #e0eab8;
+  --color-brand-300: #cbda90;
+  --color-brand-400: #b6ca68;
+  --color-brand-500: #a2bb40;
+  --color-brand-600: #8fa735;
+  --color-brand-700: #708226;
+  --color-brand-800: #566321;
+  --color-brand-900: #414a1c;
+  --color-brand-950: #272c11;
+
+  --color-canvas: #f8fafc; /* fundo da aplicação */
+  --color-surface: #ffffff; /* cards, tabelas, diálogos */
+  --color-line: #e2e8f0; /* bordas */
+  --color-ink: #0f172a; /* texto principal */
+  /* O token "muted" da spec (#475569) é cor de TEXTO; no shadcn vira
+     muted-foreground. bg-muted continua sendo um fundo claro (ver D04). */
+
+  --color-danger: #b91c1c;
+  --color-warning: #b45309;
+  --color-info: #1d4ed8;
+
+  --font-sans: "Inter", "Inter Fallback", ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 0.75rem;
+}
+
+/* Mapeamento das variáveis do shadcn/ui para os tokens acima. */
+:root {
+  --background: var(--color-canvas);
+  --foreground: var(--color-ink);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-brand-500);
+  --primary-foreground: var(--color-brand-950);
+  --secondary: var(--color-surface);
+  --secondary-foreground: var(--color-ink);
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
+  --accent: var(--color-brand-50);
+  --accent-foreground: var(--color-brand-900);
+  --destructive: var(--color-danger);
+  --border: var(--color-line);
+  --input: #cbd5e1;
+  --ring: var(--color-brand-700);
+  --chart-1: var(--color-brand-500);
+  --chart-2: var(--color-brand-800);
+  --chart-3: var(--color-brand-300);
+  --chart-4: var(--color-brand-700);
+  --chart-5: var(--color-brand-950);
+  --radius: 0.75rem;
+  --sidebar: var(--color-brand-500);
+  --sidebar-foreground: var(--color-brand-950);
+  --sidebar-primary: var(--color-brand-600);
+  --sidebar-primary-foreground: var(--color-brand-950);
+  --sidebar-accent: var(--color-brand-600);
+  --sidebar-accent-foreground: var(--color-brand-950);
+  --sidebar-border: var(--color-brand-600);
+  --sidebar-ring: var(--color-brand-950);
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  /* Foco visível padrão (seção 12). */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    @apply ring-2 ring-brand-700 ring-offset-2 ring-offset-canvas outline-none;
+  }
+}
