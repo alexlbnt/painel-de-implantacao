@@ -61,7 +61,7 @@ describe("acaoDoProjeto", () => {
     expect(executar).toHaveBeenCalledWith(
       expect.objectContaining({ tx: { tx: true }, dados: { projetoId: "p1", nome: "Teste" } }),
     );
-    expect(mocks.revalidatePath).toHaveBeenCalledWith("/projetos/p1");
+    expect(mocks.revalidatePath).toHaveBeenCalledWith("/projetos/p1", "layout");
   });
 
   it("checa a permissão antes de validar os campos", async () => {

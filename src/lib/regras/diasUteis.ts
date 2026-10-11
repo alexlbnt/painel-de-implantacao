@@ -103,6 +103,16 @@ export function somarDiasUteis(
   return deUtc(ms);
 }
 
+/** Dias corridos de `a` até `b` (negativo quando `b` é anterior). */
+export function diasCorridosEntre(a: DataISO, b: DataISO): number {
+  return Math.round((paraUtc(b) - paraUtc(a)) / UM_DIA_MS);
+}
+
+/** Soma `n` dias corridos. */
+export function somarDiasCorridos(data: DataISO, n: number): DataISO {
+  return deUtc(paraUtc(data) + n * UM_DIA_MS);
+}
+
 /**
  * Dias úteis depois de `a` até `b`, inclusive (`a` não conta).
  * Negativo quando `b` é anterior a `a`. Inverso de `somarDiasUteis`.

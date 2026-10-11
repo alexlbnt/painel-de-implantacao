@@ -17,8 +17,8 @@ import {
 // 1. exigirSessao  2. exigirMembro/exigirLider (404 se não membro)  3. schema.safeParse
 // 4. prisma.$transaction(escrita + registrarHistorico)  5. revalidatePath  6. { ok, data } | { ok: false, erro }
 
-export type Resultado<T = void> =
-  { ok: true; data: T } | { ok: false; erro: string; campos?: Record<string, string[]> };
+import type { Resultado } from "@/lib/resultado";
+export type { Resultado };
 
 /** Recusa por regra de negócio (portões, transições). A mensagem vai para o usuário. */
 export class ErroNegocio extends Error {
@@ -61,7 +61,8 @@ type Revalidar<D, T> = (dados: D, data: T) => string | string[];
 
 function revalidar(caminhos: string | string[] | undefined) {
   if (!caminhos) return;
-  for (const caminho of Array.isArray(caminhos) ? caminhos : [caminhos]) revalidatePath(caminho);
+  for (const caminho of Array.isArray(caminhos) ? caminhos : [caminhos])
+    revalidatePath(caminho, "layout");
 }
 
 const comProjeto = z.object({ projetoId: z.string().min(1) });
