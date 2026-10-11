@@ -3,11 +3,18 @@ import { MOTIVO_MIN_CARACTERES } from "./regras/fases";
 
 // Peças de schema reutilizadas pelos formulários e pelas Server Actions (mensagens em português).
 
+const maiuscula = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 export function texto(rotulo: string, { min = 1, max = 200 }: { min?: number; max?: number } = {}) {
   return z
     .string({ error: `Informe ${rotulo}` })
     .trim()
-    .min(min, min <= 1 ? `Informe ${rotulo}` : `${rotulo} precisa ter pelo menos ${min} caracteres`)
+    .min(
+      min,
+      min <= 1
+        ? `Informe ${rotulo}`
+        : `${maiuscula(rotulo)} precisa ter pelo menos ${min} caracteres`,
+    )
     .max(max, `Use no máximo ${max} caracteres`);
 }
 
