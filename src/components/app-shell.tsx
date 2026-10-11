@@ -1,6 +1,26 @@
 "use client";
 
-import { FolderKanban, LogOut, Menu } from "lucide-react";
+import {
+  ArrowLeft,
+  BookOpen,
+  Boxes,
+  CalendarClock,
+  ClipboardCheck,
+  DatabaseZap,
+  FileCheck2,
+  FolderKanban,
+  GraduationCap,
+  History,
+  LayoutDashboard,
+  ListTodo,
+  LogOut,
+  Menu,
+  Milestone,
+  Settings,
+  TriangleAlert,
+  Users,
+  UsersRound,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -22,6 +42,22 @@ import { cn } from "@/lib/utils";
 /** Ícones disponíveis para a navegação (Server Components passam só o nome). */
 const ICONES = {
   projetos: FolderKanban,
+  voltar: ArrowLeft,
+  painel: LayoutDashboard,
+  fases: Milestone,
+  modulos: Boxes,
+  tarefas: ListTodo,
+  reunioes: CalendarClock,
+  evidencias: FileCheck2,
+  treinamentos: GraduationCap,
+  pessoas: Users,
+  wiki: BookOpen,
+  migracao: DatabaseZap,
+  checkout: ClipboardCheck,
+  equipe: UsersRound,
+  historico: History,
+  configuracoes: Settings,
+  riscos: TriangleAlert,
 } as const;
 
 export type IconeNavegacao = keyof typeof ICONES;
@@ -38,6 +74,8 @@ type Props = {
   appNome: string;
   usuario: { nome: string; email: string };
   itens: ItemNavegacao[];
+  /** Contexto acima da navegação (ex.: nome do projeto). */
+  contexto?: { titulo: string; subtitulo?: string };
   children: ReactNode;
 };
 
@@ -81,6 +119,19 @@ function Navegacao({ itens, aoNavegar }: { itens: ItemNavegacao[]; aoNavegar?: (
   );
 }
 
+function BlocoContexto({ contexto }: { contexto: Props["contexto"] }) {
+  if (!contexto) return null;
+  return (
+    <div className="min-w-0 rounded-lg bg-brand-600 px-3 py-2 text-brand-950">
+      <p className="text-xs font-medium">Projeto</p>
+      <p className="truncate text-sm font-semibold" title={contexto.titulo}>
+        {contexto.titulo}
+      </p>
+      {contexto.subtitulo ? <p className="truncate text-xs">{contexto.subtitulo}</p> : null}
+    </div>
+  );
+}
+
 function BlocoUsuario({ usuario }: { usuario: Props["usuario"] }) {
   return (
     <div className="space-y-2 border-t-2 border-brand-600 pt-4">
@@ -104,20 +155,21 @@ function BlocoUsuario({ usuario }: { usuario: Props["usuario"] }) {
   );
 }
 
-export function AppShell({ appNome, usuario, itens, children }: Props) {
+export function AppShell({ appNome, usuario, itens, contexto, children }: Props) {
   const [menuAberto, setMenuAberto] = useState(false);
 
   return (
     <div className="min-h-dvh lg:flex">
       {/* Desktop: barra lateral fixa */}
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r-2 border-brand-600 bg-brand-500 p-4 lg:flex">
+      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-4 border-r-2 border-brand-600 bg-brand-500 p-4 lg:flex">
         <Link
           href="/projetos"
           className={cn("rounded-lg px-3 py-1 text-xl font-semibold text-brand-950", focoNoVerde)}
         >
           {appNome}
         </Link>
-        <div className="flex-1 overflow-y-auto">
+        <BlocoContexto contexto={contexto} />
+        <div className="-mx-1 flex-1 overflow-y-auto px-1">
           <Navegacao itens={itens} />
         </div>
         <BlocoUsuario usuario={usuario} />
@@ -138,7 +190,7 @@ export function AppShell({ appNome, usuario, itens, children }: Props) {
           </SheetTrigger>
           <SheetContent
             side="left"
-            className="w-72 gap-6 border-r-2 border-brand-600 bg-brand-500 p-4 text-brand-950 [&_[data-slot=sheet-close]]:text-brand-950 [&_[data-slot=sheet-close]]:hover:bg-brand-600"
+            className="w-72 gap-4 overflow-y-auto border-r-2 border-brand-600 bg-brand-500 p-4 text-brand-950 [&_[data-slot=sheet-close]]:text-brand-950 [&_[data-slot=sheet-close]]:hover:bg-brand-600"
           >
             <div>
               <SheetTitle className="px-3 text-xl font-semibold text-brand-950">
@@ -146,6 +198,7 @@ export function AppShell({ appNome, usuario, itens, children }: Props) {
               </SheetTitle>
               <SheetDescription className="sr-only">Menu de navegação</SheetDescription>
             </div>
+            <BlocoContexto contexto={contexto} />
             <div className="flex-1 overflow-y-auto">
               <Navegacao itens={itens} aoNavegar={() => setMenuAberto(false)} />
             </div>
@@ -158,6 +211,11 @@ export function AppShell({ appNome, usuario, itens, children }: Props) {
         >
           {appNome}
         </Link>
+        {contexto ? (
+          <span className="min-w-0 truncate text-sm font-medium text-brand-950">
+            · {contexto.titulo}
+          </span>
+        ) : null}
       </header>
 
       <main className="min-w-0 flex-1 bg-canvas">
