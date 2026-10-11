@@ -128,6 +128,12 @@ escondidos na UI, mas a checagem real é sempre a da action.
 - Badges sempre com texto (labels em `lib/formatos.ts`), cores da tabela da seção 12.
 - Mobile a partir de 360px, sem rolagem horizontal da página.
 
+## Desenvolvimento
+
+- Depois de mover pastas ou editar arquivos por fora do editor, o `next dev` às vezes serve módulos
+  desatualizados (componente `undefined`, schema `undefined`). Solução: parar o servidor, `rm -rf .next/dev` e subir de novo.
+- Arquivos `"use server"` só podem exportar actions. Auxiliares de servidor ficam em `features/<modulo>/servidor.ts`.
+
 ## Testes
 
 - Regras puras: `src/lib/regras/*.test.ts` (obrigatório para cada regra).

@@ -145,3 +145,33 @@ A brand-500 tem contraste 2,1:1 com o branco (validado com o script de paleta). 
 contorno brand-700, rótulo de valor e uma tabela equivalente para leitores de tela. A linha de
 referência (brand-800, tracejada) é o percentual do projeto. O card "Progresso por módulo" já entra no
 painel nesta sprint, junto com os de progresso, fase e tarefas atrasadas.
+
+### Sprint 3
+
+**D25 — Onde ficam os impedimentos.**
+A seção 11 não tem rota própria para impedimentos. Eles são do projeto e aparecem em dois lugares: no fim
+da tela de Reuniões (todos, abertos e resolvidos) e na seção 5 de cada ata em rascunho, onde podem ser
+abertos já vinculados à reunião (`reuniaoId`) e resolvidos.
+
+**D26 — "Pontos críticos e impedimentos" da ata.**
+A ata lista os impedimentos ABERTOS do projeto mais os registrados naquela reunião, mesmo que já
+resolvidos. É esse conjunto que vai para o snapshot ao finalizar.
+
+**D27 — Resolução de impedimento com no mínimo 10 caracteres.**
+"Resolver com resolução" (Sprint 3) exige o texto da resolução, com o mesmo mínimo dos motivos. A
+descrição do impedimento também tem mínimo de 10 caracteres.
+
+**D28 — Tipo da reunião na criação.**
+O botão "Nova reunião semanal" abre um diálogo com o tipo (Semanal, padrão, ou Kickoff) e a data já
+preenchida com o próximo dia configurado (hoje, se hoje for o dia). A reunião de PRONTIDÃO é criada
+automaticamente no avanço para HANDOVER (Sprint 7). Reuniões não são excluídas: a spec não prevê isso.
+
+**D29 — Parte dos participantes.**
+Membro da equipe entra como Contratada e pessoa do cliente como Contratante, automaticamente. Só o
+participante sem cadastro (`nomeAvulso`) tem a parte escolhida. Repetidos são recusados.
+
+**D30 — Ata finalizada lida só do snapshot.**
+Depois de finalizada, a tela (e o PDF, na Sprint 4) usa exclusivamente `Reuniao.snapshot`. As tarefas
+criadas na ata continuam editáveis em Tarefas, mas a ata mostra o conteúdo congelado. Todas as actions
+que mexem na reunião (dados, participantes, decisões, ações e impedimentos vinculados) recusam ata
+FINALIZADA no servidor. O seed monta os snapshots das reuniões 1 a 3 com a mesma `montarSnapshot` do app.
