@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    env:
+      # O build não depende de banco real (seção 16).
+      SKIP_ENV_VALIDATION: "1"
+      NEXT_PUBLIC_APP_NAME: Marco
+      NEXT_PUBLIC_ORG_NAME: Sua Empresa
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
