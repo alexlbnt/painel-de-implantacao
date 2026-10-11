@@ -4,6 +4,8 @@ import type { IconeNavegacao, ItemNavegacao } from "@/components/app-shell";
 const ABAS: { aba: string; rotulo: string; icone: IconeNavegacao }[] = [
   { aba: "", rotulo: "Painel", icone: "painel" },
   { aba: "fases", rotulo: "Ciclo de vida", icone: "fases" },
+  { aba: "modulos", rotulo: "Módulos", icone: "modulos" },
+  { aba: "tarefas", rotulo: "Tarefas", icone: "tarefas" },
   { aba: "pessoas", rotulo: "Pessoas do cliente", icone: "pessoas" },
   { aba: "equipe", rotulo: "Equipe", icone: "equipe" },
   { aba: "historico", rotulo: "Histórico", icone: "historico" },
