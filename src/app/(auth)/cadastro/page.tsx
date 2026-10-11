@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { FormCadastro } from "@/features/auth/components/form-cadastro";
-import { obterSessao } from "@/server/permissoes";
 
 export const metadata: Metadata = { title: "Criar conta" };
 
-export default async function PaginaCadastro() {
-  if (await obterSessao()) redirect("/projetos");
+export default function PaginaCadastro() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">

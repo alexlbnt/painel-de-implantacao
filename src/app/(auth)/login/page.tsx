@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { FormLogin } from "@/features/auth/components/form-login";
-import { obterSessao } from "@/server/permissoes";
 
 export const metadata: Metadata = { title: "Entrar" };
 
-export default async function PaginaLogin() {
-  if (await obterSessao()) redirect("/projetos");
+export default function PaginaLogin() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">

@@ -1,8 +1,14 @@
+import { redirect } from "next/navigation";
 import { APP_FRASE, APP_NAME, ORG_NAME } from "@/lib/constantes";
+import { obterSessao } from "@/server/permissoes";
 
 // Layout dividido (seção 11): painel verde à esquerda com nome e frase; formulário à direita.
 // No celular: só o formulário, com faixa verde no topo. Texto sobre o verde = brand-950.
-export default function LayoutAutenticacao({ children }: LayoutProps<"/">) {
+// Quem já está logado vai para /projetos. A checagem fica no layout (fora do loading.tsx)
+// para responder 307 antes do streaming, sem piscar o skeleton.
+export default async function LayoutAutenticacao({ children }: LayoutProps<"/">) {
+  if (await obterSessao()) redirect("/projetos");
+
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">
       <aside className="bg-brand-500 text-brand-950 lg:flex lg:w-1/2 lg:flex-col lg:justify-between lg:border-r-2 lg:border-brand-600 lg:p-12">
